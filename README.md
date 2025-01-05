@@ -33,7 +33,7 @@ Este script de Python fue desarrollado para automatizar la gestión de servicios
 ## 📥 Instalación
 1. Clone o descargue el script:
 ```bash
-git clone https://tu-repositorio/xampp-control.git
+https://github.com/DevMobyEnd/xampp_control.git
 cd xampp-control
 ```
 
