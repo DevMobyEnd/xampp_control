@@ -1,177 +1,196 @@
-# Control de Servicios XAMPP
-### Desarrollado por DevMobyEnd (Jhonny Torres)
+# XAMPP Control Script - Documentación
+[![Python Version](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## 📋 Tabla de Contenidos
-- [Descripción](#descripción)
-- [Características](#características)
-- [Requisitos](#requisitos)
-- [Instalación](#instalación)
-- [Uso](#uso)
-- [Estructura del Código](#estructura-del-código)
-- [Guía Técnica](#guía-técnica)
-- [Personalización](#personalización)
-- [Solución de Problemas](#solución-de-problemas)
-- [Contribuir](#contribuir)
+1. [Descripción](#descripción)
+2. [Características](#características)
+3. [Requisitos](#requisitos)
+4. [Instalación](#instalación)
+5. [Uso](#uso)
+6. [Estructura del Código](#estructura-del-código)
+7. [Solución de Problemas](#solución-de-problemas)
+8. [Contribuir](#contribuir)
+9. [Aprendizaje y Desarrollo](#aprendizaje-y-desarrollo)
 
 ## 📝 Descripción
-Este script de Python fue desarrollado para automatizar la gestión de servicios XAMPP en sistemas Linux, proporcionando una interfaz de usuario amigable y colorida en la terminal. El proyecto surge de la necesidad de simplificar las tareas repetitivas de inicio/detención de servicios durante el desarrollo web local.
+Este script proporciona una interfaz de línea de comandos elegante y eficiente para controlar los servicios de XAMPP en sistemas Linux. Permite gestionar Apache, MySQL y ProFTPD de manera sencilla con una interfaz visual mejorada.
 
 ## ✨ Características
-- Control automatizado de servicios Apache y ProFTPD
-- Selección flexible de MySQL (XAMPP/Sistema)
-- Interfaz de terminal decorada con colores
-- Manejo robusto de errores
-- Verificación automática de privilegios
-- Documentación detallada
+- Interfaz de línea de comandos con diseño ASCII art
+- Gestión de servicios Apache, MySQL y ProFTPD
+- Soporte para MySQL del sistema y MySQL de XAMPP
+- Interfaz colorida y amigable usando Colorama
+- Mensajes de estado claros y detallados
+- Manejo de errores robusto
+- Verificación de privilegios de root
 
-## 🔧 Requisitos
+## 📋 Requisitos
 - Python 3.6 o superior
-- XAMPP instalado en el sistema
-- Privilegios de superusuario (sudo)
-- Biblioteca colorama (se instala automáticamente)
+- XAMPP instalado en `/opt/lampp`
+- Privilegios de root
+- Sistema operativo Linux
 
-## 📥 Instalación
-1. Clone o descargue el script:
+### Dependencias de Python
 ```bash
-https://github.com/DevMobyEnd/xampp_control.git
+pip install colorama
+```
+
+## 🚀 Instalación
+
+1. Clona el repositorio:
+```bash
+git clone https://github.com/tu-usuario/xampp-control.git
 cd xampp-control
 ```
 
-2. Otorgue permisos de ejecución:
+2. Instala las dependencias:
+```bash
+pip install -r requirements.txt
+```
+
+3. Da permisos de ejecución:
 ```bash
 chmod +x xampp_control.py
 ```
 
-## 🚀 Uso
-1. Ejecute el script con privilegios de superusuario:
+## 💻 Uso
+
+### Comandos Básicos
+
+1. Ejecutar el script:
 ```bash
 sudo python3 xampp_control.py
 ```
 
-2. Siga las instrucciones en pantalla para:
-   - Ver el estado actual de los servicios
-   - Activar/desactivar servicios
-   - Seleccionar la versión de MySQL
+2. Detener el script:
+- Presiona `Ctrl + C` en cualquier momento
+
+### Opciones de MySQL
+- `0`: Usar MySQL de XAMPP
+- `1`: Usar MySQL del sistema
 
 ## 🔍 Estructura del Código
-El código está organizado en dos clases principales:
 
-### TerminalStyle
-Maneja la decoración y estilos de la terminal:
+### Clases Principales
+
+#### `TerminalStyle`
+Maneja los estilos y decoraciones de la terminal:
 - `header()`: Formato para encabezados
 - `success()`: Mensajes de éxito
 - `error()`: Mensajes de error
 - `info()`: Mensajes informativos
 - `prompt()`: Prompts de usuario
 
-### XAMPPController
-Gestiona la lógica principal:
-- `__init__()`: Inicialización y configuración
-- `check_root()`: Verificación de privilegios
-- `service_is_running()`: Comprobación de estado de servicios
-- `execute_command()`: Ejecución segura de comandos
-- `select_mysql_type()`: Selección de MySQL
-- `toggle_services()`: Control principal de servicios
+#### `XAMPPController`
+Controlador principal de servicios:
+- `service_is_running()`: Verifica el estado de servicios
+- `check_root()`: Verifica privilegios de root
+- `execute_command()`: Ejecuta comandos del sistema
+- `toggle_services()`: Gestiona servicios
+- `select_mysql_type()`: Selección de versión MySQL
 
-## 📚 Guía Técnica
+### Funciones Auxiliares
 
-### Bibliotecas Utilizadas
-1. **os**: 
-   - Propósito: Operaciones del sistema operativo
-   - Uso principal: Verificación de privilegios (geteuid)
+#### `print_banner()`
+Muestra el banner ASCII art de XAMPP al inicio del programa.
 
-2. **subprocess**: 
-   - Propósito: Ejecución de comandos del sistema
-   - Uso principal: Control de servicios XAMPP
+#### `main()`
+Función principal que inicializa y ejecuta el controlador.
 
-3. **colorama**: 
-   - Propósito: Colorear la salida de terminal
-   - Componentes usados: Fore, Back, Style
-   - Instalación automática si no está presente
+## ❗ Solución de Problemas
 
-### Patrones de Diseño
-1. **Singleton**: 
-   - Implementado en XAMPPController
-   - Garantiza una única instancia de control
-
-2. **Command Pattern**: 
-   - Usado en execute_command()
-   - Encapsula comandos del sistema
-
-### Manejo de Errores
-- Verificación de privilegios root
-- Captura de excepciones en comandos del sistema
-- Manejo de interrupciones de usuario (Ctrl+C)
-- Validación de entrada de usuario
-
-## 🎨 Personalización
-
-### Modificar Rutas
-```python
-self.xampp_path = "/opt/lampp"  # Cambie según su instalación
+### Error: "Permission denied"
+**Problema**: No tienes permisos de root
+**Solución**: Ejecuta el script con sudo
+```bash
+sudo python3 xampp_control.py
 ```
 
-### Cambiar Colores
-```python
-# En la clase TerminalStyle
-Fore.CYAN    # Encabezados
-Fore.GREEN   # Éxito
-Fore.RED     # Error
-Fore.YELLOW  # Info
-Fore.MAGENTA # Prompts
+### Error: "MySQL service not found"
+**Problema**: MySQL no está instalado en el sistema
+**Solución**: Instala MySQL o usa la versión de XAMPP
+```bash
+sudo apt-get install mysql-server
 ```
 
-### Agregar Nuevos Servicios
-1. Añada el archivo PID en self.pid_files
-2. Cree los métodos correspondientes en XAMPPController
-3. Actualice toggle_services()
+### Error: "XAMPP not found in /opt/lampp"
+**Problema**: XAMPP no está instalado o la ruta es incorrecta
+**Solución**: 
+1. Verifica la instalación de XAMPP
+2. Modifica la variable `xampp_path` en el código si tu instalación está en otra ubicación
 
-## 🔧 Solución de Problemas
-
-### Errores Comunes
-1. **"Necesita privilegios de root"**
-   - Solución: Ejecute con sudo
-
-2. **"Comando no encontrado"**
-   - Verifique la instalación de XAMPP
-   - Confirme la ruta en xampp_path
-
-3. **"Error al iniciar MySQL"**
-   - Verifique que no haya conflictos de puertos
-   - Asegure que el servicio no esté ya en ejecución
+### Error: "Command not found"
+**Problema**: Falta alguna dependencia del sistema
+**Solución**: Instala las dependencias necesarias
+```bash
+sudo apt-get update
+sudo apt-get install python3-pip
+pip3 install colorama
+```
 
 ## 🤝 Contribuir
-1. Fork el repositorio
-2. Cree una rama para su característica
-3. Commit sus cambios
-4. Push a la rama
-5. Abra un Pull Request
 
-## 📖 Aprendizaje y Extensión
-Para desarrolladores que quieran aprender de este código o extenderlo:
+¿Quieres contribuir al proyecto? ¡Excelente! Aquí hay algunas formas de hacerlo:
 
-### Conceptos Clave
-1. **Manejo de Procesos en Linux**
-   - Archivos PID
-   - Servicios del sistema
-   - Privilegios de usuario
+1. Reporta bugs o sugiere mejoras creando un issue
+2. Mejora la documentación
+3. Añade nuevas características
+4. Optimiza el código existente
 
-2. **Programación Orientada a Objetos en Python**
-   - Clases y métodos
-   - Encapsulación
-   - Manejo de excepciones
+### Guía de Contribución
+1. Haz fork del repositorio
+2. Crea una rama para tu característica (`git checkout -b feature/AmazingFeature`)
+3. Haz commit de tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📚 Aprendizaje y Desarrollo
+
+### Conceptos Clave para Aprender
+1. **Programación Orientada a Objetos en Python**
+   - Clases y objetos
+   - Herencia y encapsulación
+   - Métodos estáticos y de clase
+
+2. **Manejo de Procesos en Linux**
+   - Comandos del sistema
+   - Gestión de servicios
+   - Permisos y privilegios
 
 3. **Interfaz de Usuario en Terminal**
-   - Colorama para decoración
-   - Interacción con usuario
-   - Mensajes informativos
+   - ANSI color codes
+   - ASCII art
+   - Diseño de interfaces TUI
 
-### Posibles Extensiones
-1. Añadir más servicios de XAMPP
-2. Implementar logging
-3. Crear una interfaz gráfica (GUI)
-4. Agregar monitoreo de recursos
-5. Implementar backup automático
+### Áreas de Mejora Potencial
+1. **Funcionalidad**
+   - Añadir soporte para más servicios
+   - Implementar logging
+   - Añadir configuración personalizable
+   - Crear backup automático de configuraciones
+
+2. **Interfaz**
+   - Implementar menú interactivo con ncurses
+   - Añadir más opciones de personalización visual
+   - Mejorar la accesibilidad
+
+3. **Código**
+   - Implementar tests unitarios
+   - Mejorar el manejo de errores
+   - Optimizar el rendimiento
+   - Añadir documentación tipo docstring
+
+### Recursos de Aprendizaje
+- [Python Official Documentation](https://docs.python.org/)
+- [Linux Service Management](https://www.digitalocean.com/community/tutorials/how-to-use-systemctl-to-manage-systemd-services-and-units)
+- [Terminal User Interfaces with Python](https://python.plainenglish.io/build-a-terminal-user-interface-using-python-93342a9e0adb)
+
+## 📜 Licencia
+Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+
+## 👨‍💻 Autor
+Desarrollado por [DevMobyEnd (Jhonny Torres)](https://github.com/DevMobyEnd)
 
 ---
-Desarrollado con ❤️ por DevMobyEnd (Jhonny Torres)
+¿Encontraste útil esta documentación? ¡Dale una ⭐ al repositorio!

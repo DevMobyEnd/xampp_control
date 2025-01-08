@@ -20,33 +20,47 @@ except ImportError:
     from colorama import init, Fore, Back, Style
     init()
 
+def print_banner():
+    banner = """
+    ██╗  ██╗ █████╗ ███╗   ███╗██████╗ ██████╗ 
+    ╚██╗██╔╝██╔══██╗████╗ ████║██╔══██╗██╔══██╗
+     ╚███╔╝ ███████║██╔████╔██║██████╔╝██████╔╝
+     ██╔██╗ ██╔══██║██║╚██╔╝██║██╔═══╝ ██╔═══╝ 
+    ██╔╝ ██╗██║  ██║██║ ╚═╝ ██║██║     ██║     
+    ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝     ╚═╝     
+    =============================================
+         Control Panel - Versión Terminal
+    =============================================
+    """
+    print(f"{Fore.CYAN}{banner}{Style.RESET_ALL}")
+
 class TerminalStyle:
     """Clase para manejar los estilos y decoraciones de la terminal."""
     
     @staticmethod
     def header(text):
         """Formato para encabezados."""
-        return f"\n{Fore.CYAN}{Style.BRIGHT}=== {text} ==={Style.RESET_ALL}\n"
+        return f"\n{Fore.CYAN}{Style.BRIGHT}╔{'═' * (len(text) + 4)}╗\n║  {text}  ║\n╚{'═' * (len(text) + 4)}╝{Style.RESET_ALL}\n"
     
     @staticmethod
     def success(text):
         """Formato para mensajes de éxito."""
-        return f"{Fore.GREEN}✔ {text}{Style.RESET_ALL}"
+        return f"{Fore.GREEN}[✔] {text}{Style.RESET_ALL}"
     
     @staticmethod
     def error(text):
         """Formato para mensajes de error."""
-        return f"{Fore.RED}✘ {text}{Style.RESET_ALL}"
+        return f"{Fore.RED}[✘] {text}{Style.RESET_ALL}"
     
     @staticmethod
     def info(text):
         """Formato para mensajes informativos."""
-        return f"{Fore.YELLOW}ℹ {text}{Style.RESET_ALL}"
+        return f"{Fore.YELLOW}[ℹ] {text}{Style.RESET_ALL}"
     
     @staticmethod
     def prompt(text):
         """Formato para prompts de usuario."""
-        return f"{Fore.MAGENTA}? {text}{Style.RESET_ALL}"
+        return f"{Fore.MAGENTA}[?] {text}{Style.RESET_ALL}"
 
 class XAMPPController:
     def __init__(self):
@@ -78,7 +92,6 @@ class XAMPPController:
             print(self.style.info("Por favor, ejecuta con: sudo python3 xampp_control.py"))
             sys.exit(1)
     
-    
     def execute_command(self, command):
         """
         Ejecuta un comando del sistema de manera segura.
@@ -100,57 +113,85 @@ class XAMPPController:
     def select_mysql_type(self):
         """Permite al usuario seleccionar qué versión de MySQL utilizar."""
         print(self.style.header("Selección de MySQL"))
-        print(self.style.info("0) MySQL de XAMPP"))
-        print(self.style.info("1) MySQL del Sistema"))
+        print(f"{Fore.CYAN}┌{'─' * 30}┐{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}│{Style.RESET_ALL} {self.style.info('0) MySQL de XAMPP')}")
+        print(f"{Fore.CYAN}│{Style.RESET_ALL} {self.style.info('1) MySQL del Sistema')}")
+        print(f"{Fore.CYAN}└{'─' * 30}┘{Style.RESET_ALL}")
         
         while True:
             choice = input(self.style.prompt("Seleccione una opción (0/1): "))
             if choice in ['0', '1']:
                 return choice
             print(self.style.error("Opción inválida. Por favor, seleccione 0 o 1."))
+
     def toggle_services(self):
         """Gestiona la activación/desactivación de servicios con interfaz mejorada."""
         print(self.style.header("Control de Servicios XAMPP"))
         
-        # Determinar estado actual de manera más precisa
         apache_running = self.service_is_running('apache')
         proftpd_running = self.service_is_running('proftpd')
         
-        # Mostrar estado actual
-        print(self.style.info(f"Apache: {'Activo' if apache_running else 'Inactivo'}"))
-        print(self.style.info(f"ProFTPD: {'Activo' if proftpd_running else 'Inactivo'}"))
+        print(f"{Fore.CYAN}┌{'─' * 40}┐{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}│{Style.RESET_ALL} Apache:   {self.style.success('Activo') if apache_running else self.style.error('Inactivo')}")
+        print(f"{Fore.CYAN}│{Style.RESET_ALL} ProFTPD:  {self.style.success('Activo') if proftpd_running else self.style.error('Inactivo')}")
+        print(f"{Fore.CYAN}└{'─' * 40}┘{Style.RESET_ALL}")
         
-        # Si alguno está corriendo, desactivamos. Si ninguno está corriendo, activamos
         if apache_running or proftpd_running:
             print(self.style.header("Desactivando Servicios"))
-            # Usar el comando completo de XAMPP para detener
-            self.execute_command([f"{self.xampp_path}/xampp", "stop"])
-            print(self.style.success("Servicios web desactivados exitosamente."))
             
-            # Detener MySQL si está en uso
-            print(self.style.info("Deteniendo servicio MySQL..."))
-            self.execute_command(["sudo", "systemctl", "stop", "mysql"])
-            print(self.style.success("MySQL detenido exitosamente."))
+            if apache_running:
+                if self.execute_command([f"{self.xampp_path}/xampp", "stopapache"]):
+                    print(self.style.success("Apache detenido correctamente"))
+            if proftpd_running:
+                if self.execute_command([f"{self.xampp_path}/xampp", "stopftp"]):
+                    print(self.style.success("ProFTPD detenido correctamente"))
+                
+            try:
+                result = subprocess.run(["systemctl", "is-active", "mysql"], capture_output=True, text=True)
+                if result.stdout.strip() == "active":
+                    print(self.style.info("Deteniendo MySQL del sistema..."))
+                    if self.execute_command(["systemctl", "stop", "mysql"]):
+                        print(self.style.success("MySQL del sistema detenido correctamente"))
+            except Exception as e:
+                print(self.style.error(f"Error al verificar MySQL: {str(e)}"))
+                
         else:
             print(self.style.header("Activando Servicios"))
-            # Usar el comando completo de XAMPP para iniciar
-            self.execute_command([f"{self.xampp_path}/xampp", "start"])
-            print(self.style.success("Servicios web activados exitosamente."))
             
-            # Seleccionar y activar MySQL
+            if self.execute_command([f"{self.xampp_path}/xampp", "startapache"]):
+                print(self.style.success("Apache iniciado correctamente"))
+            if self.execute_command([f"{self.xampp_path}/xampp", "startftp"]):
+                print(self.style.success("ProFTPD iniciado correctamente"))
+            
             mysql_choice = self.select_mysql_type()
             if mysql_choice == '0':
                 print(self.style.info("Iniciando MySQL de XAMPP..."))
-                self.execute_command([f"{self.xampp_path}/xampp", "startmysql"])
+                if self.execute_command([f"{self.xampp_path}/xampp", "startmysql"]):
+                    print(self.style.success("MySQL de XAMPP iniciado correctamente"))
+                else:
+                    print(self.style.error("Error al iniciar MySQL de XAMPP"))
             else:
                 print(self.style.info("Iniciando MySQL del Sistema..."))
-                self.execute_command(["sudo", "systemctl", "start", "mysql"])
-            print(self.style.success("MySQL iniciado exitosamente."))
+                try:
+                    check_service = subprocess.run(["systemctl", "list-unit-files", "mysql.service"], 
+                                                capture_output=True, text=True)
+                    if "mysql.service" not in check_service.stdout:
+                        print(self.style.error("El servicio MySQL no está instalado en el sistema"))
+                        return
+                        
+                    if self.execute_command(["systemctl", "start", "mysql"]):
+                        print(self.style.success("MySQL del sistema iniciado correctamente"))
+                    else:
+                        print(self.style.error("Error al iniciar MySQL del sistema"))
+                        print(self.style.info("Verifique que MySQL está instalado correctamente"))
+                except Exception as e:
+                    print(self.style.error(f"Error al iniciar MySQL: {str(e)}"))
 
-        
 def main():
     """Función principal que inicializa y ejecuta el controlador."""
     try:
+        os.system('clear')  # Limpia la pantalla
+        print_banner()  # Muestra el banner al inicio
         controller = XAMPPController()
         controller.check_root()
         controller.toggle_services()
