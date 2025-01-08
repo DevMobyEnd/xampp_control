@@ -58,6 +58,19 @@ class XAMPPController:
         }
         self.style = TerminalStyle()
     
+    def service_is_running(self, service):
+        """
+        Verifica si un servicio está en ejecución usando ps.
+        """
+        try:
+            if service == 'apache':
+                result = subprocess.run(['pgrep', 'httpd'], capture_output=True, text=True)
+            elif service == 'proftpd':
+                result = subprocess.run(['pgrep', 'proftpd'], capture_output=True, text=True)
+            return result.returncode == 0
+        except Exception:
+            return False
+        
     def check_root(self):
         """Verifica si el script se está ejecutando con privilegios de root."""
         if os.geteuid() != 0:
@@ -65,20 +78,6 @@ class XAMPPController:
             print(self.style.info("Por favor, ejecuta con: sudo python3 xampp_control.py"))
             sys.exit(1)
     
-    def service_is_running(self, service):
-        """
-        Verifica si un servicio está en ejecución.
-        
-        Args:
-            service (str): Nombre del servicio ('apache' o 'proftpd')
-            
-        Returns:
-            bool: True si el servicio está ejecutándose
-        """
-        pid_file = self.pid_files.get(service)
-        if pid_file and Path(pid_file).exists():
-            return True
-        return False
     
     def execute_command(self, command):
         """
@@ -101,20 +100,19 @@ class XAMPPController:
     def select_mysql_type(self):
         """Permite al usuario seleccionar qué versión de MySQL utilizar."""
         print(self.style.header("Selección de MySQL"))
-        print(self.style.info("1) MySQL de XAMPP"))
-        print(self.style.info("2) MySQL del Sistema"))
+        print(self.style.info("0) MySQL de XAMPP"))
+        print(self.style.info("1) MySQL del Sistema"))
         
         while True:
-            choice = input(self.style.prompt("Seleccione una opción (1/2): "))
-            if choice in ['1', '2']:
+            choice = input(self.style.prompt("Seleccione una opción (0/1): "))
+            if choice in ['0', '1']:
                 return choice
-            print(self.style.error("Opción inválida. Por favor, seleccione 1 o 2."))
-
+            print(self.style.error("Opción inválida. Por favor, seleccione 0 o 1."))
     def toggle_services(self):
         """Gestiona la activación/desactivación de servicios con interfaz mejorada."""
         print(self.style.header("Control de Servicios XAMPP"))
         
-        # Determinar estado actual
+        # Determinar estado actual de manera más precisa
         apache_running = self.service_is_running('apache')
         proftpd_running = self.service_is_running('proftpd')
         
@@ -122,10 +120,11 @@ class XAMPPController:
         print(self.style.info(f"Apache: {'Activo' if apache_running else 'Inactivo'}"))
         print(self.style.info(f"ProFTPD: {'Activo' if proftpd_running else 'Inactivo'}"))
         
+        # Si alguno está corriendo, desactivamos. Si ninguno está corriendo, activamos
         if apache_running or proftpd_running:
             print(self.style.header("Desactivando Servicios"))
-            self.execute_command([f"{self.xampp_path}/lampp", "stopapache"])
-            self.execute_command([f"{self.xampp_path}/lampp", "stopftp"])
+            # Usar el comando completo de XAMPP para detener
+            self.execute_command([f"{self.xampp_path}/xampp", "stop"])
             print(self.style.success("Servicios web desactivados exitosamente."))
             
             # Detener MySQL si está en uso
@@ -134,20 +133,21 @@ class XAMPPController:
             print(self.style.success("MySQL detenido exitosamente."))
         else:
             print(self.style.header("Activando Servicios"))
-            self.execute_command([f"{self.xampp_path}/lampp", "startapache"])
-            self.execute_command([f"{self.xampp_path}/lampp", "startftp"])
+            # Usar el comando completo de XAMPP para iniciar
+            self.execute_command([f"{self.xampp_path}/xampp", "start"])
             print(self.style.success("Servicios web activados exitosamente."))
             
             # Seleccionar y activar MySQL
             mysql_choice = self.select_mysql_type()
-            if mysql_choice == '1':
+            if mysql_choice == '0':
                 print(self.style.info("Iniciando MySQL de XAMPP..."))
-                self.execute_command([f"{self.xampp_path}/lampp", "startmysql"])
+                self.execute_command([f"{self.xampp_path}/xampp", "startmysql"])
             else:
                 print(self.style.info("Iniciando MySQL del Sistema..."))
                 self.execute_command(["sudo", "systemctl", "start", "mysql"])
             print(self.style.success("MySQL iniciado exitosamente."))
 
+        
 def main():
     """Función principal que inicializa y ejecuta el controlador."""
     try:
